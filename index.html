@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevBlog Pro</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins;}
+body{
+  background:linear-gradient(135deg,#020617,#0f172a);
+  color:white;
+  padding:20px;
+}
+
+/* Navbar */
+nav{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:20px;
+}
+nav h2{color:#38bdf8}
+
+/* Container */
+.container{max-width:900px;margin:auto}
+
+/* Form */
+.form{
+  background:rgba(255,255,255,0.05);
+  padding:20px;
+  border-radius:12px;
+  backdrop-filter:blur(10px);
+}
+
+input,textarea,select{
+  width:100%;
+  margin:8px 0;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#38bdf8;
+  cursor:pointer;
+}
+
+/* Search */
+.search-bar{
+  display:flex;
+  gap:10px;
+  margin:20px 0;
+}
+
+/* Blog Cards */
+.blog{
+  background:rgba(255,255,255,0.08);
+  margin-top:15px;
+  padding:15px;
+  border-radius:12px;
+  transition:0.3s;
+}
+.blog:hover{transform:scale(1.02)}
+
+.blog img{
+  width:100%;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+.meta{font-size:12px;opacity:0.7}
+
+.actions{
+  display:flex;
+  justify-content:space-between;
+  margin-top:10px;
+}
+
+/* Modal */
+.modal{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-content{
+  background:#1e293b;
+  padding:20px;
+  border-radius:10px;
+  max-width:600px;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <h2>DevBlog Pro 🚀</h2>
+</nav>
+
+<div class="container">
+
+<!-- FORM -->
+<div class="form">
+  <input id="title" placeholder="Blog Title">
+  <textarea id="content" placeholder="Write your blog..."></textarea>
+  <input id="image" placeholder="Image URL (optional)">
+  
+  <select id="category">
+    <option>Tech</option>
+    <option>AI</option>
+    <option>Coding</option>
+    <option>Life</option>
+  </select>
+
+  <button onclick="addBlog()">Publish</button>
+</div>
+
+<!-- SEARCH -->
+<div class="search-bar">
+  <input id="search" placeholder="Search..." onkeyup="renderBlogs()">
+  <select id="filter" onchange="renderBlogs()">
+    <option value="all">All</option>
+    <option>Tech</option>
+    <option>AI</option>
+    <option>Coding</option>
+    <option>Life</option>
+  </select>
+</div>
+
+<!-- BLOG LIST -->
+<div id="blogList"></div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+<script>
+let blogs = JSON.parse(localStorage.getItem("blogs")) || [];
+
+/* Add Blog */
+function addBlog(){
+  if(!title.value || !content.value) return;
+
+  blogs.push({
+    title:title.value,
+    content:content.value,
+    image:image.value,
+    category:category.value,
+    likes:0,
+    date:new Date().toLocaleString()
+  });
+
+  title.value="";
+  content.value="";
+  image.value="";
+
+  renderBlogs();
+}
+
+/* Render */
+function renderBlogs(){
+  const list=document.getElementById("blogList");
+  const search=search.value.toLowerCase();
+  const filter=filter.value;
+
+  list.innerHTML="";
+
+  blogs
+  .filter(b=>b.title.toLowerCase().includes(search))
+  .filter(b=>filter==="all"||b.category===filter)
+  .forEach((b,i)=>{
+    list.innerHTML+=`
+      <div class="blog">
+        <h3>${b.title}</h3>
+        <p class="meta">${b.date} | ${b.category}</p>
+        <p>${b.content.slice(0,100)}...</p>
+        ${b.image ? `<img src="${b.image}">` : ""}
+        
+        <div class="actions">
+          <span>❤️ ${b.likes}</span>
+          <div>
+            <button onclick="likeBlog(${i})">Like</button>
+            <button onclick="openBlog(${i})">Read</button>
+            <button onclick="deleteBlog(${i})">Delete</button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  localStorage.setItem("blogs",JSON.stringify(blogs));
+}
+
+/* Like */
+function likeBlog(i){
+  blogs[i].likes++;
+  renderBlogs();
+}
+
+/* Delete */
+function deleteBlog(i){
+  blogs.splice(i,1);
+  renderBlogs();
+}
+
+/* Open Modal */
+function openBlog(i){
+  const b=blogs[i];
+  modal.style.display="flex";
+  modalContent.innerHTML=`
+    <h2>${b.title}</h2>
+    <p>${b.content}</p>
+    ${b.image ? `<img src="${b.image}">` : ""}
+    <br><br>
+    <button onclick="closeModal()">Close</button>
+  `;
+}
+
+/* Close */
+function closeModal(){
+  modal.style.display="none";
+}
+
+renderBlogs();
+</script>
+
+</body>
+</html>
